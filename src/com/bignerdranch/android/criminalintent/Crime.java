@@ -5,7 +5,15 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Crime {
+	
+	private static final String JSON_ID = "id";
+	private static final String JSON_TITLE = "title";
+	private static final String JSON_SOLVED = "solved";
+	private static final String JSON_DATE = "date";
 	
 	private UUID mId;
 	private String mTitle;
@@ -16,6 +24,14 @@ public class Crime {
 		//Generate unique identifier
 		mId = UUID.randomUUID();
 		mDate = new Date();
+	}
+	
+	//Another constructor that allows you to create a crime from a JSON object
+	public Crime(JSONObject json) throws JSONException {
+		mId = UUID.fromString(json.get(JSON_ID).toString());
+		mTitle = json.getString(JSON_TITLE);
+		mSolved = json.getBoolean(JSON_SOLVED);
+		mDate = new Date(json.getLong(JSON_DATE));
 	}
 	
 	//Override toString() method to generate more useful data 
@@ -58,6 +74,15 @@ public class Crime {
 
 	public void setSolved(boolean solved) {
 		mSolved = solved;
+	}
+	
+	public JSONObject toJSON() throws JSONException {
+		JSONObject json = new JSONObject();
+		json.put(JSON_ID, mId);
+		json.put(JSON_TITLE, mTitle);
+		json.put(JSON_SOLVED, mSolved);
+		json.put(JSON_DATE, mDate.getTime());
+		return json;
 	}
 
 }
