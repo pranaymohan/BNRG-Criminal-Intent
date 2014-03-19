@@ -15,14 +15,13 @@ public class CrimeLab {
 		mAppContext = appContext;
 		mCrimes = new ArrayList<Crime>();
 		
-		//For now, generate junk crimes to populate crimelab
+		/* Previously generated 100 dummy crimes for testing purposes
 		for (int i = 0; i <100; i++) {
 			Crime c = new Crime();
 			c.setTitle("Crime #"+i);
 			c.setSolved(i%2==0);
 			mCrimes.add(c);
-		}
-		
+		} */	
 	}
 	
 	public static CrimeLab get(Context c) {
@@ -31,6 +30,10 @@ public class CrimeLab {
 			sCrimeLab = new CrimeLab(c.getApplicationContext());
 		}
 		return sCrimeLab;
+	}
+	
+	public void addCrime(Crime c) {
+		mCrimes.add(c);
 	}
 	
 	public ArrayList<Crime> getCrimes() {

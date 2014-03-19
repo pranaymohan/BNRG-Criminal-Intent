@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -22,6 +25,9 @@ public class CrimeListFragment extends ListFragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		//To let fragment manager know that this fragment needs to receive options menu callbacks
+		setHasOptionsMenu(true);
+		
 		getActivity().setTitle(R.string.crimes_title);
 		mCrimes = CrimeLab.get(getActivity()).getCrimes();
 		
@@ -84,4 +90,36 @@ public class CrimeListFragment extends ListFragment {
 		((CrimeAdapter)getListAdapter()).notifyDataSetChanged();
 	}
 	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+		
+		inflater.inflate(R.menu.fragment_crime_list, menu);
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		//Use a switch statement to have the options menu behave differently
+		//based on which item id was received
+		switch (item.getItemId()) {
+			//Case where "New Crime" item was selected
+			case R.id.menu_item_new_crime:
+				//Create a new crime, add it to the Crime array in CrimeLab
+				Crime c = new Crime();
+				CrimeLab.get(getActivity()).addCrime(c);
+				//Package its id and call CrimePagerActivity to edit new crime
+				Intent i = new Intent(getActivity(), CrimePagerActivity.class);
+				i.putExtra(CrimeFragment.EXTRA_CRIME_ID, c.getId());
+				startActivityForResult(i, 0);
+				return true;
+			default:
+				//Otherwise, use default methods (which is do nothing)
+				return super.onOptionsItemSelected(item);
+		}	
+	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent i) {
+		((CrimeAdapter)getListAdapter()).notifyDataSetChanged();
+	}
 }
