@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -25,7 +26,10 @@ public class CrimeListFragment extends ListFragment {
 	
 	private ArrayList<Crime> mCrimes;
 	private boolean mSubtitleShown = false;
+	private Button mAddCrimeButton;
 	
+	//Retrieves each crime instance from mCrimes and formats it into
+	//a convenient list item view, as described in layout.list_item_crime
 	private class CrimeAdapter extends ArrayAdapter<Crime> {
 		
 		public CrimeAdapter(ArrayList<Crime> crimes) {
@@ -54,6 +58,17 @@ public class CrimeListFragment extends ListFragment {
 		}
 	}
 	
+	//For whenever a button needs to add a crime
+	private void addCrime() {
+		//Create a new crime, add it to the Crime array in CrimeLab
+		Crime c = new Crime();
+		CrimeLab.get(getActivity()).addCrime(c);
+		//Package its id and call CrimePagerActivity to edit new crime
+		Intent i = new Intent(getActivity(), CrimePagerActivity.class);
+		i.putExtra(CrimeFragment.EXTRA_CRIME_ID, c.getId());
+		startActivityForResult(i, 0);
+	}
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -76,7 +91,18 @@ public class CrimeListFragment extends ListFragment {
 	@TargetApi(11)
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-		View v = super.onCreateView(inflater, parent, savedInstanceState);
+		//View v = super.onCreateView(inflater, parent, savedInstanceState);
+		View v = inflater.inflate(R.layout.fragment_list_crime, null);
+		
+		//In case of empty list, need to inflate button to add crime
+		mAddCrimeButton = (Button)v.findViewById(R.id.add_new_crime);
+		mAddCrimeButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				addCrime();
+			}
+		});
 		
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 			if (mSubtitleShown) {
@@ -129,13 +155,7 @@ public class CrimeListFragment extends ListFragment {
 		switch (item.getItemId()) {
 			//Case where "New Crime" item was selected
 			case R.id.menu_item_new_crime:
-				//Create a new crime, add it to the Crime array in CrimeLab
-				Crime c = new Crime();
-				CrimeLab.get(getActivity()).addCrime(c);
-				//Package its id and call CrimePagerActivity to edit new crime
-				Intent i = new Intent(getActivity(), CrimePagerActivity.class);
-				i.putExtra(CrimeFragment.EXTRA_CRIME_ID, c.getId());
-				startActivityForResult(i, 0);
+				addCrime();
 				return true;
 			case R.id.menu_item_show_subtitle:
 				if (getActivity().getActionBar().getSubtitle() == null) {
