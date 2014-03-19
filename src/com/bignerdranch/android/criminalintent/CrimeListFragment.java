@@ -2,9 +2,12 @@ package com.bignerdranch.android.criminalintent;
 
 import java.util.ArrayList;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,35 +24,7 @@ public class CrimeListFragment extends ListFragment {
 	private static final String TAG = "CrimeListFragment";
 	
 	private ArrayList<Crime> mCrimes;
-	
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		//To let fragment manager know that this fragment needs to receive options menu callbacks
-		setHasOptionsMenu(true);
-		
-		getActivity().setTitle(R.string.crimes_title);
-		mCrimes = CrimeLab.get(getActivity()).getCrimes();
-		
-		//Create an adapter for CrimeListFragment's default ListView
-		//Constructor uses a context (the activity), the layout (a pre-defined list layout), and the array (mCrimes)
-		//ArrayAdapter<Crime> adapter = new ArrayAdapter<Crime>(getActivity(), android.R.layout.simple_list_item_1, mCrimes);
-		//Use a ListFragment convenience method to set the adapter of the default ListView
-		
-		CrimeAdapter adapter = new CrimeAdapter(mCrimes);
-		setListAdapter(adapter);
-	}
-	
-	//Override onListItemClick method of ListFragment to actually do something
-	@Override
-	public void onListItemClick(ListView l, View v, int position, long id) {
-		Crime c = (Crime)getListAdapter().getItem(position);
-		//Log.d(TAG, c.getTitle()+" was clicked!");
-		//Create intent to start the new activity
-		Intent i = new Intent(getActivity(), CrimePagerActivity.class);
-		i.putExtra(CrimeFragment.EXTRA_CRIME_ID, c.getId());
-		startActivity(i);
-	}
+	private boolean mSubtitleShown = false;
 	
 	private class CrimeAdapter extends ArrayAdapter<Crime> {
 		
@@ -78,8 +53,50 @@ public class CrimeListFragment extends ListFragment {
 			return convertView;
 		}
 	}
-
-	//Do not need to override onCreateView because ListFragment default implementation inflates a ListView
+	
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setRetainInstance(true);
+		//To let fragment manager know that this fragment needs to receive options menu callbacks
+		setHasOptionsMenu(true);
+		
+		getActivity().setTitle(R.string.crimes_title);
+		mCrimes = CrimeLab.get(getActivity()).getCrimes();
+		
+		//Create an adapter for CrimeListFragment's default ListView
+		//Constructor uses a context (the activity), the layout (a pre-defined list layout), and the array (mCrimes)
+		//ArrayAdapter<Crime> adapter = new ArrayAdapter<Crime>(getActivity(), android.R.layout.simple_list_item_1, mCrimes);
+		//Use a ListFragment convenience method to set the adapter of the default ListView
+		
+		CrimeAdapter adapter = new CrimeAdapter(mCrimes);
+		setListAdapter(adapter);
+	}
+	
+	@TargetApi(11)
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
+		View v = super.onCreateView(inflater, parent, savedInstanceState);
+		
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			if (mSubtitleShown) {
+				getActivity().getActionBar().setSubtitle(R.string.subtitle);
+			}
+		}
+		
+		return v;
+	}
+	
+	//Override onListItemClick method of ListFragment to actually do something
+	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		Crime c = (Crime)getListAdapter().getItem(position);
+		//Log.d(TAG, c.getTitle()+" was clicked!");
+		//Create intent to start the new activity
+		Intent i = new Intent(getActivity(), CrimePagerActivity.class);
+		i.putExtra(CrimeFragment.EXTRA_CRIME_ID, c.getId());
+		startActivity(i);
+	}
 	
 	//Override onResume so that list refreshes every time CrimeListFragment resumes from being paused
 	//This is useful when someone views a Crime detail from the list, modifies it and then hits back.
@@ -93,10 +110,18 @@ public class CrimeListFragment extends ListFragment {
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
-		
 		inflater.inflate(R.menu.fragment_crime_list, menu);
+		
+		MenuItem subtitleItem = menu.findItem(R.id.menu_item_show_subtitle);
+		if (mSubtitleShown && subtitleItem != null) {
+			subtitleItem.setTitle(R.string.hide_subtitle);
+		}
 	}
 	
+	//Regarding show subtitle text:
+	//Only have to warn off lint, and don't need to wrap code in if(Build>11) statements
+	//because the specific menu resource id will only be presented if the build > 11
+	@TargetApi(11)	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		//Use a switch statement to have the options menu behave differently
@@ -111,6 +136,17 @@ public class CrimeListFragment extends ListFragment {
 				Intent i = new Intent(getActivity(), CrimePagerActivity.class);
 				i.putExtra(CrimeFragment.EXTRA_CRIME_ID, c.getId());
 				startActivityForResult(i, 0);
+				return true;
+			case R.id.menu_item_show_subtitle:
+				if (getActivity().getActionBar().getSubtitle() == null) {
+					getActivity().getActionBar().setSubtitle(R.string.subtitle);
+					item.setTitle(R.string.hide_subtitle);
+					mSubtitleShown = true;
+				} else {
+					getActivity().getActionBar().setSubtitle(null);
+					item.setTitle(R.string.show_subtitle);
+					mSubtitleShown = false;
+				}
 				return true;
 			default:
 				//Otherwise, use default methods (which is do nothing)

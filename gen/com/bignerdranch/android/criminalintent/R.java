@@ -33,6 +33,7 @@ public final class R {
         public static final int crime_title=0x7f050002;
         public static final int fragment_container=0x7f050001;
         public static final int menu_item_new_crime=0x7f050008;
+        public static final int menu_item_show_subtitle=0x7f050009;
         public static final int view_pager=0x7f050000;
     }
     public static final class layout {
