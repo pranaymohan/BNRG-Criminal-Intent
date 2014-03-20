@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,7 +15,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,7 +54,7 @@ public class CrimeFragment extends Fragment {
 		fragment.setArguments(args);
 		
 		return fragment;
-	}
+	}	
 	
 	//Get simple date and set it as text for date button
 	public void updateDate() {
@@ -161,11 +166,47 @@ public class CrimeFragment extends Fragment {
 	}
 	
 	@Override
+	public void onPause() {
+		super.onPause();
+		CrimeLab.get(getActivity()).saveCrimes();
+	}
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+		inflater.inflate(R.menu.fragment_crime, menu);
+	}
+	
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		//Use a switch statement to have the options menu behave differently
 		//based on which item id was received
+		Log.d("menu item", item.getTitle().toString());
 		switch (item.getItemId()) {
+			case R.id.menu_item_delete_crime:
+				//Build alert dialog and set its details
+				AlertDialog.Builder aDB = new AlertDialog.Builder(getActivity());
+				aDB.setTitle("Confirm Deletion")
+					.setMessage("Are you sure you want to delete this?")
+					.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							dialog.cancel();	
+						}
+					})
+					.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							CrimeLab.get(getActivity()).deleteCrime(mCrime);
+							if (NavUtils.getParentActivityName(getActivity()) != null) {
+								NavUtils.navigateUpFromSameTask(getActivity());
+							}
+						}
+					});
+				//Create and show the alert dialog
+				AlertDialog alert = aDB.create();
+				alert.show();
+				return true;
 			case android.R.id.home:
+				
 				if (NavUtils.getParentActivityName(getActivity()) != null) {
 					NavUtils.navigateUpFromSameTask(getActivity());
 				}
@@ -174,10 +215,5 @@ public class CrimeFragment extends Fragment {
 				return super.onOptionsItemSelected(item);
 		}
 	}
-	
-	@Override
-	public void onPause() {
-		super.onPause();
-		CrimeLab.get(getActivity()).saveCrimes();
-	}
+
 }

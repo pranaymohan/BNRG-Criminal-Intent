@@ -29,7 +29,7 @@ public class Crime {
 	//Another constructor that allows you to create a crime from a JSON object
 	public Crime(JSONObject json) throws JSONException {
 		mId = UUID.fromString(json.get(JSON_ID).toString());
-		mTitle = json.getString(JSON_TITLE);
+		mTitle = json.optString(JSON_TITLE);
 		mSolved = json.getBoolean(JSON_SOLVED);
 		mDate = new Date(json.getLong(JSON_DATE));
 	}
