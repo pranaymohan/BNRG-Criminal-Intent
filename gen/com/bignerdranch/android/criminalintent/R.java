@@ -26,24 +26,27 @@ public final class R {
         public static final int ic_menu_add=0x7f020002;
     }
     public static final class id {
-        public static final int add_new_crime=0x7f050005;
+        public static final int add_new_crime=0x7f050007;
+        public static final int crime_camera_snap_button=0x7f050006;
+        public static final int crime_camera_surface_view=0x7f050005;
         public static final int crime_date=0x7f050003;
-        public static final int crime_list_item_date_text=0x7f050008;
-        public static final int crime_list_item_solved_check_box=0x7f050006;
-        public static final int crime_list_item_title_text=0x7f050007;
+        public static final int crime_list_item_date_text=0x7f05000a;
+        public static final int crime_list_item_solved_check_box=0x7f050008;
+        public static final int crime_list_item_title_text=0x7f050009;
         public static final int crime_solved=0x7f050004;
         public static final int crime_title=0x7f050002;
         public static final int fragment_container=0x7f050001;
-        public static final int menu_item_delete_crime=0x7f050009;
-        public static final int menu_item_new_crime=0x7f05000a;
-        public static final int menu_item_show_subtitle=0x7f05000b;
+        public static final int menu_item_delete_crime=0x7f05000b;
+        public static final int menu_item_new_crime=0x7f05000c;
+        public static final int menu_item_show_subtitle=0x7f05000d;
         public static final int view_pager=0x7f050000;
     }
     public static final class layout {
         public static final int activity_fragment=0x7f030000;
         public static final int fragment_crime=0x7f030001;
-        public static final int fragment_list_crime=0x7f030002;
-        public static final int list_item_crime=0x7f030003;
+        public static final int fragment_crime_camera=0x7f030002;
+        public static final int fragment_list_crime=0x7f030003;
+        public static final int list_item_crime=0x7f030004;
     }
     public static final class menu {
         public static final int crime_list_item_context=0x7f080000;
@@ -66,6 +69,7 @@ public final class R {
         public static final int new_crime=0x7f060009;
         public static final int show_subtitle=0x7f06000b;
         public static final int subtitle=0x7f06000d;
+        public static final int take_picture=0x7f060010;
         public static final int time_picker_title=0x7f060007;
     }
     public static final class style {
