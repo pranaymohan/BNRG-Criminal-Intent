@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -27,6 +28,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 public class CrimeFragment extends Fragment {
 	
@@ -40,6 +42,7 @@ public class CrimeFragment extends Fragment {
 	private EditText mTitleField;
 	private Button mDateButton;
 	private CheckBox mSolvedCheckBox;
+	private ImageButton mPhotoButton;
 	
 	//Instead of having activity use a constructor to create fragment, 
 	//write a method to create a fragment AND set arguments
@@ -96,6 +99,21 @@ public class CrimeFragment extends Fragment {
 				getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
 			}
 		}	
+		
+		mPhotoButton = (ImageButton)v.findViewById(R.id.crime_image_button);
+		mPhotoButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				Intent i = new Intent(getActivity(), CrimeCameraActivity.class);
+				startActivity(i);
+			}
+		});
+		
+		//If camera is not available, disable button
+		PackageManager pm = getActivity().getPackageManager();
+		if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA) &&
+				!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
+			mPhotoButton.setEnabled(false);
+		}
 		
 		mTitleField = (EditText)v.findViewById(R.id.crime_title);
 		mTitleField.setText(mCrime.getTitle());
