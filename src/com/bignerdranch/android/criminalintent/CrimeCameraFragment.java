@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.UUID;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.os.Build;
@@ -22,6 +24,8 @@ import android.widget.ImageButton;
 
 public class CrimeCameraFragment extends Fragment {
 	private static final String TAG = "CrimeCameraFragment";
+	
+	public static final String EXTRA_PHOTO_FILENAME = "com.bignerdranch.android.criminalintent.photo_filename";
 	
 	private Camera mCamera;
 	private SurfaceView mSurfaceView;
@@ -62,7 +66,13 @@ public class CrimeCameraFragment extends Fragment {
 			}
 			
 			if (success) {
-				Log.i(TAG, "JPG saved at "+filename);
+				//Create a return intent and attach filename
+				Intent returnIntent = new Intent();
+				returnIntent.putExtra(EXTRA_PHOTO_FILENAME, filename);
+				//Sets result on CrimeCameraActivity!
+				getActivity().setResult(Activity.RESULT_OK, returnIntent);
+			} else {
+				getActivity().setResult(Activity.RESULT_CANCELED);
 			}
 			getActivity().finish();
 		}
@@ -92,7 +102,9 @@ public class CrimeCameraFragment extends Fragment {
 		mSnapButton = (ImageButton)v.findViewById(R.id.crime_camera_snap_button);
 		mSnapButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				getActivity().finish();
+				if (mCamera != null) {
+					mCamera.takePicture(mShutterCallback, null, mPictureCallback);
+				}
 			}
 		});
 		
@@ -123,12 +135,16 @@ public class CrimeCameraFragment extends Fragment {
 				}
 			}
 			
-			public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+			public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
 				if (mCamera == null) return;
 				
 				Camera.Parameters parameters = mCamera.getParameters();
-				Size s = getBestSupportedSize(parameters.getSupportedPreviewSizes(), width, height);
+				//To set preview size
+				Size s = getBestSupportedSize(parameters.getSupportedPreviewSizes(), w, h);
 				parameters.setPreviewSize(s.width, s.height);
+				//Now to set picture size
+				s = getBestSupportedSize(parameters.getSupportedPictureSizes(), w, h);
+				parameters.setPictureSize(s.width, s.height);
 				mCamera.setParameters(parameters);
 				try {
 					mCamera.startPreview();

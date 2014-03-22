@@ -14,11 +14,13 @@ public class Crime {
 	private static final String JSON_TITLE = "title";
 	private static final String JSON_SOLVED = "solved";
 	private static final String JSON_DATE = "date";
+	private static final String JSON_PHOTO = "photo";
 	
 	private UUID mId;
 	private String mTitle;
 	private Date mDate;
 	private boolean mSolved;
+	private Photo mPhoto;
 	
 	public Crime() {
 		//Generate unique identifier
@@ -32,6 +34,20 @@ public class Crime {
 		mTitle = json.optString(JSON_TITLE);
 		mSolved = json.getBoolean(JSON_SOLVED);
 		mDate = new Date(json.getLong(JSON_DATE));
+		
+		if (json.has(JSON_PHOTO)) {
+			mPhoto = new Photo(json.getJSONObject(JSON_PHOTO));
+		}
+	}
+	
+	public JSONObject toJSON() throws JSONException {
+		JSONObject json = new JSONObject();
+		json.put(JSON_ID, mId);
+		json.put(JSON_TITLE, mTitle);
+		json.put(JSON_SOLVED, mSolved);
+		json.put(JSON_DATE, mDate.getTime());
+		if (mPhoto != null) json.put(JSON_PHOTO, mPhoto.toJSON());
+		return json;
 	}
 	
 	//Override toString() method to generate more useful data 
@@ -75,14 +91,13 @@ public class Crime {
 	public void setSolved(boolean solved) {
 		mSolved = solved;
 	}
+
+	public Photo getPhoto() {
+		return mPhoto;
+	}
 	
-	public JSONObject toJSON() throws JSONException {
-		JSONObject json = new JSONObject();
-		json.put(JSON_ID, mId);
-		json.put(JSON_TITLE, mTitle);
-		json.put(JSON_SOLVED, mSolved);
-		json.put(JSON_DATE, mDate.getTime());
-		return json;
+	public void setPhoto(Photo p) {
+		mPhoto = p;
 	}
 
 }

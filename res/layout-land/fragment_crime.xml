@@ -17,10 +17,18 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="4dp" >
             
+            <ImageView
+                android:id="@+id/crime_image_view"
+                android:layout_width="80dp"
+            	android:layout_height="80dp"
+            	android:scaleType="centerInside"
+            	android:background="@android:color/darker_gray"
+            	android:cropToPadding="true" />
+            
             <ImageButton
                 android:id="@+id/crime_image_button"
                 android:layout_width="match_parent"
-            	android:layout_height="wrap_content"
+            	android:layout_height="match_parent"
                 android:src="@android:drawable/ic_menu_camera" />
             
         </LinearLayout>
