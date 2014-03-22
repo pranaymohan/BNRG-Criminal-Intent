@@ -26,6 +26,7 @@ public class CrimeCameraFragment extends Fragment {
 	private static final String TAG = "CrimeCameraFragment";
 	
 	public static final String EXTRA_PHOTO_FILENAME = "com.bignerdranch.android.criminalintent.photo_filename";
+	public static final String EXTRA_PHOTO_ORIENTATION = "com.bignerdranch.android.criminalintent.photo_orientation";
 	
 	private Camera mCamera;
 	private SurfaceView mSurfaceView;
@@ -69,6 +70,8 @@ public class CrimeCameraFragment extends Fragment {
 				//Create a return intent and attach filename
 				Intent returnIntent = new Intent();
 				returnIntent.putExtra(EXTRA_PHOTO_FILENAME, filename);
+				//Also attach the orientation the camera was in when photo was taken
+				returnIntent.putExtra(EXTRA_PHOTO_ORIENTATION, getActivity().getResources().getConfiguration().orientation);
 				//Sets result on CrimeCameraActivity!
 				getActivity().setResult(Activity.RESULT_OK, returnIntent);
 			} else {

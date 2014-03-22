@@ -1,5 +1,6 @@
 package com.bignerdranch.android.criminalintent;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -10,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.ExifInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -38,6 +40,7 @@ public class CrimeFragment extends Fragment {
 	public static final String EXTRA_CRIME_ID = "com.bignerdranch.android.criminalintent.crime_id";
 	private static final String DIALOG_DATE = "date";
 	private static final String DIALOG_CHOICE = "choice";
+	private static final String DIALOG_IMAGE = "image";
 	public static final int REQUEST_DATE = 0;
 	private static final int REQUEST_CHOICE = -1;
 	private static final int REQUEST_PHOTO = 1;
@@ -166,6 +169,16 @@ public class CrimeFragment extends Fragment {
 		
 		//Inflate mPhotoView and load photo
 		mPhotoView = (ImageView)v.findViewById(R.id.crime_image_view);
+		mPhotoView.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				Photo p = mCrime.getPhoto();
+				if (p == null) return;
+				
+				FragmentManager fm = getActivity().getSupportFragmentManager();
+				String path = getActivity().getFileStreamPath(p.getFilename()).getAbsolutePath();
+				ImageFragment.newInstance(path).show(fm, DIALOG_IMAGE);
+			}
+		});
 		
 		return v;
 	}
@@ -263,6 +276,7 @@ public class CrimeFragment extends Fragment {
 		//Reset the image view based on the photo
 		Photo p = mCrime.getPhoto();
 		BitmapDrawable b = null;
+		
 		if (p != null) {
 			String path = getActivity().getFileStreamPath(p.getFilename()).getAbsolutePath();
 			b = PictureUtils.getScaledDrawable(getActivity(), path);
