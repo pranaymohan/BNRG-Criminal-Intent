@@ -51,6 +51,7 @@ public class CrimeFragment extends Fragment {
 	private CheckBox mSolvedCheckBox;
 	private ImageButton mPhotoButton;
 	private ImageView mPhotoView;
+	private Photo mPhoto;
 	
 	//Instead of having activity use a constructor to create fragment, 
 	//write a method to create a fragment AND set arguments
@@ -91,6 +92,7 @@ public class CrimeFragment extends Fragment {
 		UUID crimeId = (UUID)getArguments().getSerializable(EXTRA_CRIME_ID);
 		//Set mCrime to be the specific one matching crimeId
 		mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
+		mPhoto = mCrime.getPhoto();
 	}
 	
 	//Increase target api from min level 8 to 11 for onCreateView
@@ -106,15 +108,7 @@ public class CrimeFragment extends Fragment {
 			if (NavUtils.getParentActivityName(getActivity()) != null) {
 				getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
 			}
-		}	
-		
-		mPhotoButton = (ImageButton)v.findViewById(R.id.crime_image_button);
-		mPhotoButton.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				Intent i = new Intent(getActivity(), CrimeCameraActivity.class);
-				startActivityForResult(i, REQUEST_PHOTO);
-			}
-		});
+		}
 		
 		//If camera is not available, disable button
 		PackageManager pm = getActivity().getPackageManager();
@@ -171,12 +165,34 @@ public class CrimeFragment extends Fragment {
 		mPhotoView = (ImageView)v.findViewById(R.id.crime_image_view);
 		mPhotoView.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				Photo p = mCrime.getPhoto();
-				if (p == null) return;
-				
-				FragmentManager fm = getActivity().getSupportFragmentManager();
-				String path = getActivity().getFileStreamPath(p.getFilename()).getAbsolutePath();
-				ImageFragment.newInstance(path).show(fm, DIALOG_IMAGE);
+				if (mPhoto == null) {
+					Intent i = new Intent(getActivity(), CrimeCameraActivity.class);
+					startActivityForResult(i, REQUEST_PHOTO);
+				} else {
+					FragmentManager fm = getActivity().getSupportFragmentManager();
+					String path = getActivity().getFileStreamPath(mPhoto.getFilename()).getAbsolutePath();
+					ImageFragment.newInstance(path).show(fm, DIALOG_IMAGE);
+				}
+			}
+		});
+		mPhotoView.setOnLongClickListener(new View.OnLongClickListener() {
+			public boolean onLongClick(View v) {
+				if (mPhoto == null) return false;
+				//Show the deletion dialog
+				AlertDialog.Builder aDB = deleteDialog()
+						.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int id) {
+								deletePhoto();
+								mPhoto = null;
+								mCrime.setPhoto(mPhoto);
+								showPhoto();
+							}
+						});
+					//Create and show the alert dialog
+					AlertDialog alert = aDB.create();
+					alert.show();
+				//return true if the photo was deleted
+				return true;
 			}
 		});
 		
@@ -202,8 +218,11 @@ public class CrimeFragment extends Fragment {
 		} else if (requestCode == REQUEST_PHOTO) {
 			String filename = returnIntent.getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
 			if (filename != null) {
-				Photo photo = new Photo(filename);
-				mCrime.setPhoto(photo);
+				//delete photo
+				deletePhoto();
+				//set new photo
+				mPhoto = new Photo(filename);
+				mCrime.setPhoto(mPhoto);
 				showPhoto();
 			}
 		}
@@ -241,14 +260,7 @@ public class CrimeFragment extends Fragment {
 		switch (item.getItemId()) {
 			case R.id.menu_item_delete_crime:
 				//Build alert dialog and set its details
-				AlertDialog.Builder aDB = new AlertDialog.Builder(getActivity());
-				aDB.setTitle("Confirm Deletion")
-					.setMessage("Are you sure you want to delete this?")
-					.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();	
-						}
-					})
+				AlertDialog.Builder aDB = deleteDialog()
 					.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
 							CrimeLab.get(getActivity()).deleteCrime(mCrime);
@@ -274,14 +286,37 @@ public class CrimeFragment extends Fragment {
 	
 	private void showPhoto() {
 		//Reset the image view based on the photo
-		Photo p = mCrime.getPhoto();
 		BitmapDrawable b = null;
 		
-		if (p != null) {
-			String path = getActivity().getFileStreamPath(p.getFilename()).getAbsolutePath();
+		if (mPhoto != null) {
+			String path = getActivity().getFileStreamPath(mPhoto.getFilename()).getAbsolutePath();
 			b = PictureUtils.getScaledDrawable(getActivity(), path);
 		}
 		mPhotoView.setImageDrawable(b);
+	}
+	
+	private void deletePhoto() {
+		//delete old photo if it exists
+		if (mPhoto != null) {
+			String oldFilename = mPhoto.getFilename();
+			try {
+				getActivity().deleteFile(oldFilename);
+			} catch (Exception e) {
+				Log.e(TAG, "Error deleting file", e);
+			}
+		} else return;
+	}
+	
+	private AlertDialog.Builder deleteDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle("Confirm Deletion")
+			.setMessage("Are you sure you want to delete this?")
+			.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					dialog.cancel();	
+				}
+			});
+		return builder;
 	}
 
 }

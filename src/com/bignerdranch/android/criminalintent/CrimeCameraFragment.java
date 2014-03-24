@@ -70,8 +70,6 @@ public class CrimeCameraFragment extends Fragment {
 				//Create a return intent and attach filename
 				Intent returnIntent = new Intent();
 				returnIntent.putExtra(EXTRA_PHOTO_FILENAME, filename);
-				//Also attach the orientation the camera was in when photo was taken
-				returnIntent.putExtra(EXTRA_PHOTO_ORIENTATION, getActivity().getResources().getConfiguration().orientation);
 				//Sets result on CrimeCameraActivity!
 				getActivity().setResult(Activity.RESULT_OK, returnIntent);
 			} else {

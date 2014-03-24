@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.util.Log;
 import android.view.Display;
 import android.widget.ImageView;
 
@@ -47,7 +48,8 @@ public class PictureUtils {
         // Clean up the view's image for the sake of memory
         BitmapDrawable b = (BitmapDrawable)imageView.getDrawable();
         b.getBitmap().recycle();
-        imageView.setImageDrawable(null);
+        //imageView.setImageDrawable(null);
+        imageView.setImageResource(android.R.drawable.ic_menu_camera);
 	}
 
 }
