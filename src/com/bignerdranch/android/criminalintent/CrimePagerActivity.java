@@ -10,7 +10,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 
-public class CrimePagerActivity extends FragmentActivity {
+public class CrimePagerActivity extends FragmentActivity implements CrimeFragment.Callbacks {
 	private ViewPager mViewPager;
 	private ArrayList<Crime> mCrimes;
 	
@@ -70,6 +70,14 @@ public class CrimePagerActivity extends FragmentActivity {
 				// TODO Auto-generated method stub	
 			}
 		});
+	}
+
+	@Override
+	public void onCrimeUpdated(Crime crime) {
+		//Left blank because we don't need to update anything when a callback is made
+		//CrimeListFragment will automatically update when it is resumed after
+		//the ViewPager is closed. With a tabet, that onResume() call to update the UI
+		//is not made, so that's why we implement a callback to the CrimeListActivity.
 	}
 
 }

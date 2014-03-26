@@ -3,7 +3,7 @@ package com.bignerdranch.android.criminalintent;
 import java.util.ArrayList;
 
 import android.annotation.TargetApi;
-import android.content.Intent;
+import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -31,6 +31,11 @@ public class CrimeListFragment extends ListFragment {
 	private ArrayList<Crime> mCrimes;
 	private boolean mSubtitleShown = false;
 	private Button mAddCrimeButton;
+	private Callbacks mCallbacks;
+	
+	public interface Callbacks {
+		void onCrimeSelected(Crime crime);
+	}
 	
 	//Retrieves each crime instance from mCrimes and formats it into
 	//a convenient list item view, as described in layout.list_item_crime
@@ -67,10 +72,25 @@ public class CrimeListFragment extends ListFragment {
 		//Create a new crime, add it to the Crime array in CrimeLab
 		Crime c = new Crime();
 		CrimeLab.get(getActivity()).addCrime(c);
-		//Package its id and call CrimePagerActivity to edit new crime
-		Intent i = new Intent(getActivity(), CrimePagerActivity.class);
-		i.putExtra(CrimeFragment.EXTRA_CRIME_ID, c.getId());
-		startActivityForResult(i, 0);
+		updateUI();
+		//Use callbacks to get parent activity to start the crime fragment
+		mCallbacks.onCrimeSelected(c);
+	}
+	
+	public void updateUI() {
+		((CrimeAdapter)getListAdapter()).notifyDataSetChanged();
+	}
+	
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		mCallbacks = (Callbacks)activity;
+	}
+	
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		mCallbacks = null;
 	}
 	
 	@Override
@@ -176,10 +196,8 @@ public class CrimeListFragment extends ListFragment {
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		Crime c = (Crime)getListAdapter().getItem(position);
 		//Log.d(TAG, c.getTitle()+" was clicked!");
-		//Create intent to start the new activity
-		Intent i = new Intent(getActivity(), CrimePagerActivity.class);
-		i.putExtra(CrimeFragment.EXTRA_CRIME_ID, c.getId());
-		startActivity(i);
+		//use mCallbacks to get the desired crime
+		mCallbacks.onCrimeSelected(c);
 	}
 	
 	//Override onResume so that list refreshes every time CrimeListFragment resumes from being paused
@@ -188,12 +206,7 @@ public class CrimeListFragment extends ListFragment {
 	@Override
 	public void onResume() {
 		super.onResume();
-		((CrimeAdapter)getListAdapter()).notifyDataSetChanged();
-	}
-	
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent i) {
-		((CrimeAdapter)getListAdapter()).notifyDataSetChanged();
+		updateUI();
 	}
 	
 	@Override

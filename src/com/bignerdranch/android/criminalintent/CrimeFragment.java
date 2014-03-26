@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
+import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,7 +33,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 
 public class CrimeFragment extends Fragment {
@@ -52,11 +52,15 @@ public class CrimeFragment extends Fragment {
 	private EditText mTitleField;
 	private Button mDateButton;
 	private CheckBox mSolvedCheckBox;
-	private ImageButton mPhotoButton;
 	private ImageView mPhotoView;
 	private Photo mPhoto;
 	private Button mReportButton;
 	private Button mSuspectButton;
+	private Callbacks mCallbacks;
+	
+	public interface Callbacks {
+		void onCrimeUpdated(Crime crime);
+	}
 
 	//Instead of having activity use a constructor to create fragment, 
 	//write a method to create a fragment AND set arguments
@@ -89,6 +93,18 @@ public class CrimeFragment extends Fragment {
 	}
 	
 	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		mCallbacks = (Callbacks)activity;
+	}
+	
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		mCallbacks = null;
+	}
+	
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
@@ -115,13 +131,6 @@ public class CrimeFragment extends Fragment {
 			}
 		}
 		
-		//If camera is not available, disable button
-		PackageManager pm = getActivity().getPackageManager();
-		if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA) &&
-				!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
-			mPhotoButton.setEnabled(false);
-		}
-		
 		mTitleField = (EditText)v.findViewById(R.id.crime_title);
 		mTitleField.setText(mCrime.getTitle());
 		//Set listener and use anonymous inner class to implement listener methods
@@ -129,6 +138,8 @@ public class CrimeFragment extends Fragment {
 			
 			public void onTextChanged(CharSequence c, int start, int before, int count) {
 				mCrime.setTitle(c.toString());
+				mCallbacks.onCrimeUpdated(mCrime);
+				getActivity().setTitle(mCrime.getTitle());
 			}
 			
 			public void beforeTextChanged(CharSequence c, int count,int start, int after) {
@@ -163,11 +174,25 @@ public class CrimeFragment extends Fragment {
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				//Set the crime's solved property if box is checked
 				mCrime.setSolved(isChecked);
+				mCallbacks.onCrimeUpdated(mCrime);
 			}
 		});
 		
-		//Inflate mPhotoView and load photo
+		//Inflate mPhotoView
 		mPhotoView = (ImageView)v.findViewById(R.id.crime_image_view);
+		
+		//If camera is not available, disable mPhotoView
+		PackageManager pm = getActivity().getPackageManager();
+		boolean hasNoCamera = (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA) &&
+				!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) ||
+				(Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD &&
+				Camera.getNumberOfCameras() == 0);
+		if (hasNoCamera) {
+			mPhotoView.setEnabled(false);
+		}
+		
+		//Add functionality to mPhotoView
+		Log.d(TAG, hasNoCamera+" - has cameras "+Camera.getNumberOfCameras());
 		mPhotoView.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				if (mPhoto == null) {
@@ -269,6 +294,8 @@ public class CrimeFragment extends Fragment {
 			Date date = (Date)returnIntent.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
 			if (date != null) {
 				mCrime.setDate(date);
+				//Also update the list view, even though it doesn't show date, just to be safe
+				mCallbacks.onCrimeUpdated(mCrime);
 				updateDate();
 			}
 		} else if (requestCode == REQUEST_CHOICE) {
@@ -284,6 +311,8 @@ public class CrimeFragment extends Fragment {
 				//set new photo
 				mPhoto = new Photo(filename);
 				mCrime.setPhoto(mPhoto);
+				//Also update the list view, even though it doesn't show photo, just to be safe
+				mCallbacks.onCrimeUpdated(mCrime);
 				showPhoto();
 			}
 		} else if (requestCode == REQUEST_CONTACT) {
@@ -336,6 +365,8 @@ public class CrimeFragment extends Fragment {
 			
 			Suspect suspect = new Suspect(suspectName, suspectPhone);
 			mCrime.setSuspect(suspect);
+			//Also update the list view, even though it doesn't show suspect, just to be safe
+			mCallbacks.onCrimeUpdated(mCrime);
 			mSuspectButton.setText(suspect.getName());
 			//Releases cursor when done
 			cursor.close();
@@ -370,7 +401,7 @@ public class CrimeFragment extends Fragment {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		//Use a switch statement to have the options menu behave differently
 		//based on which item id was received
-		Log.d("menu item", item.getTitle().toString());
+		//Log.d("menu item", item.getTitle().toString());
 		switch (item.getItemId()) {
 			case R.id.menu_item_delete_crime:
 				//Build alert dialog and set its details
